@@ -1,0 +1,1 @@
+export const headers = ['Invoice', 'TransactionID', 'Status', 'Method', 'Amount']
