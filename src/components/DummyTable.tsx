@@ -45,12 +45,15 @@ export const DummyTable:FC<DummyTableProps> = ({invoices}) => {
           )
         })}
       </TableBody>
-      <TableFooter>
-        <TableRow>
-          <TableCell colSpan={3}>Total</TableCell>
-          <TableCell className="text-right">{`$${total.toFixed(2)}`}</TableCell>
-        </TableRow>
-      </TableFooter>
+      {invoices.length && (
+        <TableFooter>
+          <TableRow>
+            <TableCell colSpan={Object.keys(invoices[0]).length-1}>Total</TableCell>
+            <TableCell className="text-right">{`$${total.toFixed(2)}`}</TableCell>
+          </TableRow>
+        </TableFooter>
+      )}
+      
     </Table>
   )
 }
