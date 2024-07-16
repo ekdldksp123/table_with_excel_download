@@ -15,6 +15,7 @@ import { DummyTable } from "@/components/DummyTable";
 import { headers } from "@/constants";
 import { getRandomInvoices } from "@/lib/utils";
 import { useExcelUtility } from "@/lib/ExcelUtility";
+import { useXlsxUtility } from "./lib/XlsxUtility";
 
 IgrExcelModule.register();
 
@@ -24,6 +25,7 @@ const App:FC = () => {
 
   const reports = Array.from({length:tabs.length}, () => getRandomInvoices())
   const {save} = useExcelUtility()
+  const {exportToExcel} = useXlsxUtility()
 
   const [workbook, setWorkBook] = useState<Workbook>()
   const [canSave, setCanSave] = useState<boolean>(false)
@@ -86,18 +88,35 @@ const App:FC = () => {
   },[canSave, workbook])
 
   return (
-    <main className="grid gap-5 p-[32px] w-[100%]">
-      <Button onClick={workbookSave}>Download Excel</Button>
-      <Tabs defaultValue="report1">
-        <TabsList className="grid w-full grid-cols-5">
-          {tabs.map((v,i) => <TabsTrigger key={v} value={v}>{`Report ${i + 1}`}</TabsTrigger>)}
-        </TabsList>
-          {tabs.map((v, i) => (
-            <TabsContent key={v} value={v}>
-              <DummyTable invoices={reports[i]}/>
-            </TabsContent>
-          ))}
-      </Tabs>
+    <main className="grid w-full grid-cols-2">
+      <section className="grid gap-5 p-[32px] w-[100%]">
+        <span className="text-[48px]">igniteui-react-excel</span>
+        <Button onClick={workbookSave}>Download Excel</Button>
+        <Tabs defaultValue="report1">
+          <TabsList className="grid w-full grid-cols-5">
+            {tabs.map((v,i) => <TabsTrigger key={v} value={v}>{`Report ${i + 1}`}</TabsTrigger>)}
+          </TabsList>
+            {tabs.map((v, i) => (
+              <TabsContent key={v} value={v}>
+                <DummyTable invoices={reports[i]}/>
+              </TabsContent>
+            ))}
+        </Tabs>
+      </section>
+      <section className="grid gap-5 p-[32px] w-[100%]">
+      <span className="text-[48px]">xlsx</span>
+        <Button onClick={() => exportToExcel({fileName: 'Export by Xlsx TEST', data: reports})}>Download Excel</Button>
+        <Tabs defaultValue="report1">
+          <TabsList className="grid w-full grid-cols-5">
+            {tabs.map((v,i) => <TabsTrigger key={v} value={v}>{`Report ${i + 1}`}</TabsTrigger>)}
+          </TabsList>
+            {tabs.map((v, i) => (
+              <TabsContent key={v} value={v}>
+                <DummyTable invoices={reports[i]}/>
+              </TabsContent>
+            ))}
+        </Tabs>
+      </section>
     </main>
     
     
