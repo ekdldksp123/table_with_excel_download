@@ -5,11 +5,20 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { FC, useCallback, useEffect, useState } from "react"
 import { 
+  HorizontalCellAlignment,
   IgrExcelModule, 
+  VerticalCellAlignment, 
   Workbook, 
-  WorkbookFormat 
+  WorkbookFormat, 
 } from 'igniteui-react-excel';
 import { DummyTable } from "@/components/DummyTable";
 import { headers } from "@/constants";
@@ -43,7 +52,10 @@ const App:FC = () => {
       const header = sheet.rows(0); 
 
       for (let col = 0; col < headers.length; col++) {
-        sheet.columns(col).width = 5000;
+        sheet.columns(col).calculateAutoFitWidth();
+        sheet.columns(col).cellFormat.alignment = HorizontalCellAlignment.Center;
+        sheet.columns(col).cellFormat.verticalAlignment = VerticalCellAlignment.Center;
+      
         header.setCellValue(col, headers[col]);
       }
 
@@ -51,11 +63,14 @@ const App:FC = () => {
       let total:number = 0;
       for (let i = 0; i < reports[tabIndex].length; i++) {
         const wr = sheet.rows(i+1);
-        const values = Object.values(reports[tabIndex][i])
+        wr.cellFormat.alignment = HorizontalCellAlignment.Right;
+        wr.cellFormat.verticalAlignment = VerticalCellAlignment.Center;
+
+        const values = Object.values(reports[tabIndex][i]);
 
         for (let j = 0; j < values.length; j++) {
           if(typeof values[j] === 'number') {
-            total += values[j] as number
+            total += values[j] as number;
           }
 
           wr.setCellValue(j, typeof values[j] === 'number' ? (values[j] as number).toFixed(2) : values[j]);
@@ -88,38 +103,86 @@ const App:FC = () => {
   },[canSave, workbook])
 
   return (
-    <main className="grid w-full grid-cols-2">
-      <section className="grid gap-5 p-[32px] w-[100%]">
-        <span className="text-[48px]">igniteui-react-excel</span>
-        <Button onClick={workbookSave}>Download Excel</Button>
-        <Tabs defaultValue="report1">
-          <TabsList className="grid w-full grid-cols-5">
-            {tabs.map((v,i) => <TabsTrigger key={v} value={v}>{`Report ${i + 1}`}</TabsTrigger>)}
-          </TabsList>
-            {tabs.map((v, i) => (
-              <TabsContent key={v} value={v}>
-                <DummyTable invoices={reports[i]}/>
-              </TabsContent>
-            ))}
-        </Tabs>
-      </section>
-      <section className="grid gap-5 p-[32px] w-[100%]">
-      <span className="text-[48px]">xlsx</span>
-        <Button onClick={() => exportToExcel({fileName: 'Export by Xlsx TEST', data: reports})}>Download Excel</Button>
-        <Tabs defaultValue="report1">
-          <TabsList className="grid w-full grid-cols-5">
-            {tabs.map((v,i) => <TabsTrigger key={v} value={v}>{`Report ${i + 1}`}</TabsTrigger>)}
-          </TabsList>
-            {tabs.map((v, i) => (
-              <TabsContent key={v} value={v}>
-                <DummyTable invoices={reports[i]}/>
-              </TabsContent>
-            ))}
-        </Tabs>
-      </section>
+    <main className="grid w-full grid-cols-2 gap-3 bg-slate-300">
+      <Card className="h-[450px]">
+        <CardHeader>
+          <CardTitle>Simple Reports</CardTitle>
+          <CardDescription>download with igniteui-react-excel</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[75%] overflow-y-auto">
+          <Button className="mb-[12px]" onClick={workbookSave}>Download Excel</Button>
+          <Tabs defaultValue="report1">
+            <TabsList className="grid w-full grid-cols-5">
+              {tabs.map((v,i) => <TabsTrigger key={v} value={v}>{`Report ${i + 1}`}</TabsTrigger>)}
+            </TabsList>
+              {tabs.map((v, i) => (
+                <TabsContent key={v} value={v}>
+                  <DummyTable invoices={reports[i]}/>
+                </TabsContent>
+              ))}
+          </Tabs>
+        </CardContent>
+      </Card>
+      <Card className="h-[450px]">
+        <CardHeader>
+          <CardTitle>Simple Reports</CardTitle>
+          <CardDescription>download with xlsx</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[75%] overflow-y-auto">
+          <Button className="mb-[12px]" onClick={() => exportToExcel({fileName: 'Export by Xlsx TEST', data: reports})}>
+            Download Excel
+          </Button>
+          <Tabs defaultValue="report1">
+            <TabsList className="grid w-full grid-cols-5">
+              {tabs.map((v,i) => <TabsTrigger key={v} value={v}>{`Report ${i + 1}`}</TabsTrigger>)}
+            </TabsList>
+              {tabs.map((v, i) => (
+                <TabsContent key={v} value={v}>
+                  <DummyTable invoices={reports[i]}/>
+                </TabsContent>
+              ))}
+          </Tabs>
+        </CardContent>
+      </Card>
+      <Card className="h-[50%]">
+        <CardHeader>
+          <CardTitle>Complex Reports</CardTitle>
+          <CardDescription>download with igniteui-react-excel :)</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[75%] overflow-y-auto">
+          <Button className="mb-[12px]" onClick={workbookSave}>Download Excel</Button>
+          <Tabs defaultValue="report1">
+            <TabsList className="grid w-full grid-cols-5">
+              {tabs.map((v,i) => <TabsTrigger key={v} value={v}>{`Report ${i + 1}`}</TabsTrigger>)}
+            </TabsList>
+              {tabs.map((v, i) => (
+                <TabsContent key={v} value={v}>
+                  <DummyTable invoices={reports[i]}/>
+                </TabsContent>
+              ))}
+          </Tabs>
+        </CardContent>
+      </Card>
+      <Card className="h-[50%]">
+        <CardHeader>
+          <CardTitle>Complex Reports</CardTitle>
+          <CardDescription>download with igniteui-react-excel :)</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[75%] overflow-y-auto">
+          <Button className="mb-[12px]" onClick={workbookSave}>Download Excel</Button>
+          <Tabs defaultValue="report1">
+            <TabsList className="grid w-full grid-cols-5">
+              {tabs.map((v,i) => <TabsTrigger key={v} value={v}>{`Report ${i + 1}`}</TabsTrigger>)}
+            </TabsList>
+              {tabs.map((v, i) => (
+                <TabsContent key={v} value={v}>
+                  <DummyTable invoices={reports[i]}/>
+                </TabsContent>
+              ))}
+          </Tabs>
+        </CardContent>
+      </Card>
     </main>
-    
-    
   )
 }
 
