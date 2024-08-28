@@ -23,7 +23,7 @@ const tabs = ['report1', 'report2', 'report3', 'report4', 'report5'];
 const App: FC = () => {
   const reports = Array.from({ length: tabs.length }, () => getRandomInvoices());
   const { save } = useExcelUtility();
-  const { exportToExcel } = useXlsxUtility();
+  const { exportToExcel, excelStyleTest } = useXlsxUtility();
 
   const [workbook, setWorkBook] = useState<Workbook>();
   const [canSave, setCanSave] = useState<boolean>(false);
@@ -147,10 +147,13 @@ const App: FC = () => {
       <Card className='h-[50%]'>
         <CardHeader>
           <CardTitle>Complex Reports</CardTitle>
-          <CardDescription>download with igniteui-react-excel :)</CardDescription>
+          <CardDescription>download with xlsx</CardDescription>
         </CardHeader>
         <CardContent className='h-[75%] overflow-y-auto'>
-          <Button className='mb-[12px]' onClick={workbookSave}>
+          <Button
+            className='mb-[12px]'
+            onClick={() => exportToExcel({ fileName: 'Export by Xlsx TEST', data: reports })}
+          >
             Download Excel
           </Button>
           <Tabs defaultValue='report1'>
@@ -170,10 +173,10 @@ const App: FC = () => {
       <Card className='h-[50%]'>
         <CardHeader>
           <CardTitle>Complex Reports</CardTitle>
-          <CardDescription>download with igniteui-react-excel :)</CardDescription>
+          <CardDescription>styling excel test</CardDescription>
         </CardHeader>
         <CardContent className='h-[75%] overflow-y-auto'>
-          <Button className='mb-[12px]' onClick={workbookSave}>
+          <Button className='mb-[12px]' onClick={excelStyleTest}>
             Download Excel
           </Button>
           <Tabs defaultValue='report1'>
