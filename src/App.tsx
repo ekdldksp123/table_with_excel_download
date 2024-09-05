@@ -15,6 +15,8 @@ import { useExcelUtility } from '@/lib/ExcelUtility';
 import { useXlsxUtility } from './lib/XlsxUtility';
 import { SimpleTable } from './components/SimpleTable';
 import { ComplexTable } from './components/ComplexTable';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 IgrExcelModule.register();
 
@@ -104,6 +106,7 @@ const App: FC = () => {
           <Button className='mb-[12px]' onClick={workbookSave}>
             Download Excel
           </Button>
+          <DatePicker selected={new Date()} showMonthYearPicker />
           <Tabs defaultValue='report1'>
             <TabsList className='grid w-full grid-cols-5'>
               {tabs.map((v, i) => (

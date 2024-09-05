@@ -8,6 +8,7 @@ type ExportToExcelProps = {
 
 export const useXlsxUtility = () => {
   const exportToExcel = ({ data, fileName }: ExportToExcelProps) => {
+    console.log({ data });
     const workbook = XLSX.utils.book_new();
     for (let i = 0; i < data.length; i++) {
       try {
@@ -42,11 +43,11 @@ export const useXlsxUtility = () => {
       }
     }
 
-    try {
-      XLSX.writeFile(workbook, `${fileName}.xlsx`, { compression: true });
-    } catch (error) {
-      console.error(error);
-    }
+    // try {
+    //   XLSX.writeFile(workbook, `${fileName}.xlsx`, { compression: true });
+    // } catch (error) {
+    //   console.error(error);
+    // }
   };
 
   // 열 너비를 자동으로 맞추기 위한 함수
@@ -69,6 +70,13 @@ export const useXlsxUtility = () => {
   const excelStyleTest = () => {
     const wb = XLSX.utils.book_new();
 
+    const headers = [
+      { 'Courier: 24': 'Courier: 24' },
+      { 'bold & color': 'bold & color' },
+      { 'fill: color': 'fill: color' },
+      { 'line\nbreak': 'line\nbreak' },
+    ];
+
     // STEP 2: Create data rows and styles
     let row = [
       { v: 'Courier: 24', t: 's', s: { font: { name: 'Courier', sz: 24 } } },
@@ -79,10 +87,29 @@ export const useXlsxUtility = () => {
 
     // STEP 3: Create worksheet with rows; Add worksheet to workbook
     const ws = XLSX.utils.aoa_to_sheet([row]);
+
+    ws['!cols'] = autoFitColumns(headers);
     XLSX.utils.book_append_sheet(wb, ws, 'readme demo');
 
+    const merges = ['A1:B1', 'C1:D1'].map((range) => XLSX.utils.decode_range(range));
+
+    if (!ws['!merges']) ws['!merges'] = [];
+
+    for (const merge of merges) {
+      ws['!merges'].forEach(function (range) {
+        if (merge.e.r < range.s.r) return;
+        if (range.e.r < merge.s.r) return;
+        if (merge.e.c < range.s.c) return;
+        if (range.e.c < merge.s.c) return;
+        throw new Error(XLSX.utils.encode_range(merge) + ' overlaps ' + XLSX.utils.encode_range(range));
+      });
+      ws['!merges'].push(merge);
+    }
+
+    console.log({ merges: ws['!merges'] });
+
     // STEP 4: Write Excel file to browser
-    XLSX.writeFile(wb, 'xlsx-js-style-demo.xlsx');
+    // XLSX.writeFile(wb, 'xlsx-js-style-demo.xlsx');
   };
   return { exportToExcel, excelStyleTest };
 };
