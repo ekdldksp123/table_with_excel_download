@@ -90,15 +90,15 @@ export const getRowSpan = (row: GridGroup): number => {
   return row.children.reduce((total, child) => total + getRowSpan(child), 0);
 };
 
-export const getColSpan = (column: GridGroup, idx: number, rowMaxDepth: number): number => {
+export const getColSpan = (column: GridGroup, idx: number, depth: number, rowMaxDepth: number): number => {
   if (!column.children) {
-    if (idx === 0 && rowMaxDepth > 1) {
+    if (depth === 0 && idx === 0 && rowMaxDepth > 1) {
       return rowMaxDepth;
     }
     return 1;
   }
 
-  return column.children.reduce((span, child, index) => span + getColSpan(child, index, rowMaxDepth), 0);
+  return column.children.reduce((span, child, index) => span + getColSpan(child, index, depth + 1, rowMaxDepth), 0);
 };
 
 export const getMaxDepth = (groups: GridGroup[], currentDepth = 1): number => {

@@ -1,7 +1,7 @@
 import { GridData, GridGroup } from '@/types';
 import { amountToLocaleString, getColSpan, getMaxDepth, getRowSpan } from './utils';
 import * as XLSX from 'xlsx-js-style';
-
+import { v4 as uuid4 } from 'uuid';
 interface IExportToExcel {
   reports: Record<string, { rows: GridGroup[]; columns: GridGroup[]; data: GridData[] }>;
   fileName: string;
@@ -184,7 +184,7 @@ export const useXlsxUtilityV2 = () => {
     for (const row of rows) {
       nextRowIndex = processRow(row, 0, nextRowIndex);
     }
-    return gridData.filter((v) => !!v);
+    return gridData.filter((v) => !!v).map((v) => v.filter(Boolean));
   };
 
   const addColumns = (gridData: StyledCellType[][], columns: GridGroup[], colMaxDepth: number, rowMaxDepth: number) => {
@@ -261,17 +261,43 @@ export const useXlsxUtilityV2 = () => {
     for (const col of columns) {
       nextColIndex = processColumn(col, 0, nextColIndex);
     }
-    return gridData.filter((v) => !!v.length);
+    const filteredGridData = gridData.filter((v) => !!v.length).map((v) => v.filter(Boolean));
+
+    if (rowMaxDepth > 1 && colMaxDepth > 1) {
+      for (let i = 1; i < colMaxDepth; i++) {
+        for (let j = 0; j < rowMaxDepth; j++) {
+          filteredGridData[i].unshift({
+            key: uuid4(),
+            v: '',
+            t: 's',
+            s: {
+              font: { bold: true, color: { rgb: '000000' } },
+              fill: { fgColor: { rgb: 'DCE2F7' } },
+              border: COLSPAN_BORDER_STYLE,
+              alignment: { horizontal: 'center', vertical: 'center' },
+            },
+          });
+        }
+      }
+    }
+
+    return filteredGridData;
   };
 
-  const getColumnMergeList = (columns: GridGroup[], rowMaxDepth: number) => {
+  const getColumnMergeList = (columns: GridGroup[], rowMaxDepth: number, colMaxDepth: number) => {
     let nextColIndex = 0;
     const mergeList: string[] = [];
 
     const recur = (col: GridGroup, index: number, depth: number) => {
-      const colSpan = getColSpan(col, index, rowMaxDepth);
+      const colSpan = getColSpan(col, index, depth, rowMaxDepth);
 
-      if (colSpan > 1) {
+      if (index === 0 && depth === 0) {
+        if (rowMaxDepth > 1 && colMaxDepth > 1) {
+          mergeList.push(`${ALPHABET_LIST[index]}${depth + 1}:${ALPHABET_LIST[index + rowMaxDepth - 1]}${colMaxDepth}`);
+        } else if (colMaxDepth > 1) {
+          //TODO
+        }
+      } else if (colSpan > 1) {
         mergeList.push(`${ALPHABET_LIST[index]}${depth + 1}:${ALPHABET_LIST[index + colSpan - 1]}${depth + 1}`);
       }
 
@@ -290,14 +316,18 @@ export const useXlsxUtilityV2 = () => {
     return mergeList;
   };
 
-  const getRowMergeList = (rows: GridGroup[]) => {
+  const getRowMergeList = (rows: GridGroup[], colMaxDepth: number) => {
     let nextRowDepth = 0;
     const mergeList: string[] = [];
 
     const recur = (row: GridGroup, index: number, depth: number) => {
       const rowSpan = getRowSpan(row);
 
-      if (rowSpan > 1) {
+      if (index === 0 && colMaxDepth > 1 && rowSpan > 1) {
+        mergeList.push(
+          `${ALPHABET_LIST[index]}${depth + colMaxDepth}:${ALPHABET_LIST[index]}${depth + colMaxDepth - 1 + rowSpan}`,
+        );
+      } else if (rowSpan > 1) {
         mergeList.push(`${ALPHABET_LIST[index]}${depth + 1}:${ALPHABET_LIST[index]}${depth + rowSpan}`);
       }
 
@@ -388,7 +418,52 @@ export const useXlsxUtilityV2 = () => {
         const gridData: StyledCellType[][] = [...colGroup, ...rowGroup];
 
         const ws = XLSX.utils.aoa_to_sheet(gridData);
-      } catch (error) {}
+        ws['!cols'] = autoFitColumns(colGroup, rowGroup, data, rowMaxDepth);
+
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+        const mergeList: string[] = [];
+
+        const colMergeList = getColumnMergeList(columns, rowMaxDepth, colMaxDepth);
+        const rowMergeList = getRowMergeList(rows, colMaxDepth);
+
+        if (colMergeList.length) {
+          mergeList.push(...colMergeList);
+        }
+        if (rowMergeList.length) {
+          mergeList.push(...rowMergeList);
+        }
+
+        const merges = mergeList.map((range) => XLSX.utils.decode_range(range));
+
+        if (!ws['!merges']) {
+          ws['!merges'] = [];
+        }
+
+        if (!ws['!merges'].length && merges.length) {
+          ws['!merges'] = merges;
+          for (const merge of merges) {
+            for (const range of ws['!merges']) {
+              if (merge.e.r < range.s.r) return;
+              if (range.e.r < merge.s.r) return;
+              if (merge.e.c < range.s.c) return;
+              if (range.e.c < merge.s.c) return;
+              throw new Error(XLSX.utils.encode_range(merge) + ' overlaps ' + XLSX.utils.encode_range(range));
+            }
+            ws['!merges'].push(merge);
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    try {
+      XLSX.writeFile(wb, `${fileName}.xlsx`, { compression: true });
+    } catch (error) {
+      console.error(error);
     }
   };
+
+  return { exportToExcel };
 };
